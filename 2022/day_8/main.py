@@ -28,7 +28,7 @@ class Grid:
     def get_column(self, index):
         return [self.board[i * self.height + index] for i in range(self.height)]
 
-    # TODO: should we cache this?
+
     def value_by_index(self, x, y):
         val_index = y * self.height + x
         return self.board[val_index]
@@ -39,18 +39,20 @@ class Grid:
         row = self.get_row(y)
         column = self.get_column(x)
 
+        # should this be changed to generators we iterate over?
+        # slicing the whole list now while we might only need a very small part of the data
+        # could split it off in a separate function that checks if there are obstacles in that way
         left = row[:x]
         right = row[x + 1:]
         up = column[:y]
         down = column[y + 1:]
 
-        for arr in [left, right, up, down]:
-            # Doing max on this is very inefficient. It loops over all items in the list
-            #if max(arr) < tree_val:
-            #    return True
+        for arr in left, right, up, down:
             for item in arr:
-                if item > tree_val:
-                    return True
+                if item >= tree_val:
+                    break
+            else:
+                return True
 
         return False
 
