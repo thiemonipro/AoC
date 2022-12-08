@@ -1,4 +1,7 @@
+import time
 from dataclasses import dataclass
+
+from functools import cache
 
 
 def input_data(path: str):
@@ -17,12 +20,15 @@ class Grid:
         self.width = width
         self.height = height
 
+    @cache
     def get_row(self, index):
         return self.board[index * self.width: index * self.width + self.width]
 
+    @cache
     def get_column(self, index):
         return [self.board[i * self.height + index] for i in range(self.height)]
 
+    # TODO: should we cache this?
     def value_by_index(self, x, y):
         val_index = y * self.height + x
         return self.board[val_index]
@@ -39,8 +45,12 @@ class Grid:
         down = column[y + 1:]
 
         for arr in [left, right, up, down]:
-            if max(arr) < tree_val:
-                return True
+            # Doing max on this is very inefficient. It loops over all items in the list
+            #if max(arr) < tree_val:
+            #    return True
+            for item in arr:
+                if item > tree_val:
+                    return True
 
         return False
 
@@ -89,14 +99,16 @@ class Grid:
         return counter
 
     def most_scenic_tree(self):
-        tree_scores = []
+        highest_score = 0
         for x in range(self.width):
             for y in range(self.height):
                 if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
-                    tree_scores.append(0)
                     continue
-                tree_scores.append(self.score_tree(x, y))
-        return tree_scores
+
+                score = self.score_tree(x, y)
+                if highest_score < score:
+                    highest_score = score
+        return highest_score
 
     def pretty_print(self):
         print(f"{self.width=}")
@@ -104,16 +116,25 @@ class Grid:
         for i in range(self.height):
             print(self.get_row(i))
 
+    def __hash__(self):
+        return 1
+
 
 if __name__ == "__main__":
-    data = input_data("data/input.txt")
+    data = input_data("data/2000x2000.txt")
     grid = Grid(board=data, width=len(data[0]), height=len(data))
     grid.pretty_print()
     print(f"*" * 120)
 
     # part 1
+    start = time.time()
     print(grid.visible_trees())
+    end = time.time()
+    print(f"p1 took: {end-start} s")
 
     # part 2
-    scores = grid.most_scenic_tree()
-    print(f"top tree: {max(scores)}")
+    start = time.time()
+    tree = grid.most_scenic_tree()
+    print(f"top tree: {tree}")
+    end = time.time()
+    print(f"p2 took: {end - start} s")
